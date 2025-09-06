@@ -29,21 +29,21 @@ def I : α → α :=
   fun a ↦ a
 
 def K : α → β → α :=
-  fun a b ↦ a
+  fun a _b ↦ a
 
 def C : (α → β → γ) → β → α → γ :=
-  sorry
+  fun f b a ↦ f a b
 
 def projFst : α → α → α :=
-  sorry
+  fun x _y ↦ x
 
 /- Give a different answer than for `projFst`. -/
 
 def projSnd : α → α → α :=
-  sorry
+  fun _x y ↦ y
 
 def someNonsense : (α → β → γ) → α → (α → γ) → β → γ :=
-  sorry
+  fun f a _ b ↦ (f a b)
 
 
 /- ## Question 2: Typing Derivation
@@ -54,4 +54,23 @@ characters `–` (to draw horizontal bars) and `⊢` useful. -/
 
 -- write your solution in a comment here or on paper
 
+/-
+
+Given by Cst:
+f : α → (β → γ)
+a : α
+b : β
+
+By App, f a : β → γ
+By App, f a b : γ
+
+By Curry, fun f a b ↦ τ is the anonymous function fun f ↦ (fun a ↦ (fun b ↦ f a b))
+
+By Fun, fun b ↦ f a b : β → γ
+By Fun, fun a ↦ (fun b ↦ f a b) : α → (β → γ)
+By Fun, fun f ↦ (fun a ↦ (fun b ↦ f a b)) : (α → (β → γ)) → α → (β → γ)
+                                          = (α → β → γ) → α → β → γ
+QED
+
+-/
 end LoVe
