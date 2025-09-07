@@ -22,18 +22,18 @@ its argument, or 0 if the argument is 0. For example:
     `pred 7 = 6`
     `pred 0 = 0` -/
 
-def pred : ℕ → ℕ :=
-  sorry
+def pred : ℕ → ℕ
+  | .zero => 0
+  | .succ n => n
 
 /- 1.2. Check that your function works as expected. -/
 
-#eval pred 0    -- expected: 0
-#eval pred 1    -- expected: 0
-#eval pred 2    -- expected: 1
-#eval pred 3    -- expected: 2
-#eval pred 10   -- expected: 9
-#eval pred 99   -- expected: 98
-
+#guard pred 0 == 0   -- expected: 0
+#guard pred 1 == 0   -- expected: 0
+#guard pred 2 == 1   -- expected: 1
+#guard pred 3 == 2   -- expected: 2
+#guard pred 10 == 9  -- expected: 9
+#guard pred 99 == 98 -- expected: 98
 
 /- ## Question 2: Arithmetic Expressions
 
@@ -60,7 +60,11 @@ def someEnv : String → ℤ
   | "y" => 17
   | _   => 201
 
-#eval eval someEnv (AExp.var "x")   -- expected: 3
+#guard eval someEnv (AExp.var "x") == 3
+#guard eval someEnv (AExp.num 0) == 0
+#guard eval someEnv (AExp.add (AExp.var "x") (AExp.num 5)) == 8
+-- etc
+
 -- invoke `#eval` here
 
 /- 2.2. The following function simplifies arithmetic expressions involving
@@ -71,7 +75,13 @@ operators. -/
 def simplify : AExp → AExp
   | AExp.add (AExp.num 0) e₂ => simplify e₂
   | AExp.add e₁ (AExp.num 0) => simplify e₁
-  -- insert the missing cases here
+  | AExp.mul (AExp.num 0) _ => AExp.num 0
+  | AExp.mul _ (AExp.num 0) => AExp.num 0
+  | AExp.mul (AExp.num 1) e => simplify e
+  | AExp.mul e (AExp.num 1) => simplify e
+  | AExp.div e (AExp.num 1) => simplify e
+  -- | AExp.sub (AExp.num 0) e₂ => AExp.mul (AExp.num -1) (simplify e₂). -- arguably not simpler
+  | AExp.sub e₁ (AExp.num 0) => simplify e₁
   -- catch-all cases below
   | AExp.num i               => AExp.num i
   | AExp.var x               => AExp.var x
@@ -90,19 +100,19 @@ the property that the value of `e` after simplification is the same as the
 value of `e` before. -/
 
 theorem simplify_correct (env : String → ℤ) (e : AExp) :
-  True :=   -- replace `True` by your theorem statement
+  eval env (simplify e) = eval env e :=   -- replace `True` by your theorem statement
   sorry   -- leave `sorry` alone
-
 
 /- ## Question 3 (**optional**): Map
 
 3.1 (**optional**). Define a generic `map` function that applies a function to
 every element in a list. -/
 
-def map {α : Type} {β : Type} (f : α → β) : List α → List β :=
-  sorry
+def map {α : Type} {β : Type} (f : α → β) : List α → List β
+  | [] => []
+  | x :: xs => f x :: map f xs
 
-#eval map (fun n ↦ n + 10) [1, 2, 3]   -- expected: [11, 12, 13]
+#guard map (fun n ↦ n + 10) [1, 2, 3] == [11, 12, 13]
 
 /- 3.2 (**optional**). State (without proving them) the so-called functorial
 properties of `map` as theorems. Schematically:
@@ -114,5 +124,9 @@ Try to give meaningful names to your theorems. Also, make sure to state the
 second property as generally as possible, for arbitrary types. -/
 
 -- enter your theorem statements here
+
+theorem map_id {α : Type} (xs : List α) : map (fun x => x) xs = xs := sorry
+theorem map_comp {α β γ: Type} (f: α → β) (g: β → γ) (xs: List α)
+  : map (fun x ↦ g (f x)) xs = map g (map f xs) := sorry
 
 end LoVe
