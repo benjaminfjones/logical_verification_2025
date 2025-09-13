@@ -65,12 +65,25 @@ def append (α : Type) : List α → List α → List α
   | List.nil,       ys => ys
   | List.cons x xs, ys => List.cons x (append α xs ys)
 -/
-theorem sum_append_eq_sum_add (ms ns : List ℕ) : sum (ms ++ ns) = sum ms + sum ns := by
-  induction ms
-  . unfold sum
-    rw [zero_add]
-    rfl
-  . sorry
+lemma sum_cons_eq_add_sum : ∀ x : ℕ, ∀ xs : List ℕ, sum (x :: xs) = x + sum xs := by
+  intro x xs
+  unfold sum
+  apply Nat.add_left_cancel_iff.mpr
+  induction xs with
+    | nil => simp only [sum]
+    | cons y ys iy =>
+      simp only [sum]
+
+theorem sum_append_eq_sum_add (ms ns : List ℕ) : sum (append _ ms ns) = sum ms + sum ns := by
+  induction ms with
+    | nil =>
+      unfold sum
+      rw [zero_add]
+      rfl
+    | cons x xs ih =>
+      rw [sum_cons_eq_add_sum, append_cons_eq_cons_append]
+      rw [sum_cons_eq_add_sum, ih]
+      rw [add_assoc]
 
 lemma cons_snoc_eq_snoc (x y : ℕ) (xs : List ℕ) : x :: snoc xs y = snoc (x :: xs) y := by
   induction xs generalizing x y

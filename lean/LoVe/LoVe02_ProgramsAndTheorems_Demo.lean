@@ -145,6 +145,10 @@ def append (α : Type) : List α → List α → List α
   | List.nil,       ys => ys
   | List.cons x xs, ys => List.cons x (append α xs ys)
 
+  /- Lemmas for later... -/
+theorem append_cons_eq_cons_append {α: Type} (x: α) (as bs: List α) : append α (x :: as) bs = x :: (append α as bs) := by
+  rfl
+
 /- Because `append` must work for any type of list, the type of its elements is
 provided as an argument. As a result, the type must be provided in every call
 (or use `_` if Lean can infer the type). -/
@@ -183,7 +187,7 @@ def appendPretty {α : Type} : List α → List α → List α
 
 def reverse {α : Type} : List α → List α
   | []      => []
-  | x :: xs => reverse xs ++ [x]
+  | x :: xs => append _ (reverse xs) [x]
 
 def eval (env : String → ℤ) : AExp → ℤ
   | AExp.num i     => i
