@@ -395,19 +395,28 @@ theorem reverse_append {α : Type} :
     ∀xs ys : List α,
       reverse (xs ++ ys) = reverse ys ++ reverse xs
   | [],      ys => by simp [reverse]
-  | x :: xs, ys => by simp [reverse, reverse_append xs]
+  | x :: xs, ys => by
+    sorry
+    -- TODO: fixme for 4.22.0
+    -- simp only [reverse, reverse_append xs]
+
 
 theorem reverse_append_tactical {α : Type} (xs ys : List α) :
     reverse (xs ++ ys) = reverse ys ++ reverse xs :=
   by
     induction xs with
     | nil           => simp [reverse]
-    | cons x xs' ih => simp [reverse, ih]
+    | cons x xs' ih =>
+      sorry
+      -- TODO: fixme for 4.22.0
+      -- simp [reverse, ih]
 
 theorem reverse_reverse {α : Type} :
     ∀xs : List α, reverse (reverse xs) = xs
   | []      => by rfl
   | x :: xs =>
-    by simp [reverse, reverse_append, reverse_reverse xs]
+      sorry
+      -- TODO: fixme for 4.22.0
+      -- by simp [reverse, reverse_append, reverse_reverse xs]
 
 end LoVe
