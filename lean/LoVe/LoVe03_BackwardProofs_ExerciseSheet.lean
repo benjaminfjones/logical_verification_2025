@@ -27,35 +27,47 @@ Section 3.3 in the Hitchhiker's Guide. -/
 
 theorem I (a : Prop) :
     a → a :=
-  sorry
+  by
+    intto h; exact h
 
 theorem K (a b : Prop) :
     a → b → b :=
-  sorry
+  by
+    intro _ h; exact h
 
 theorem C (a b c : Prop) :
     (a → b → c) → b → a → c :=
-  sorry
+  by
+    intro f hb ha
+    exact f ha hb
 
 theorem proj_fst (a : Prop) :
     a → a → a :=
-  sorry
+  by
+    intro ha _
+    exact ha
 
 /- Please give a different answer than for `proj_fst`: -/
 
 theorem proj_snd (a : Prop) :
     a → a → a :=
-  sorry
+  by
+    intro _ hb
+    exact hb
 
 theorem some_nonsense (a b c : Prop) :
     (a → b → c) → a → (a → c) → b → c :=
-  sorry
+  by
+    intro _ ha g _
+    exact (g ha)
 
 /- 1.2. Prove the contraposition rule using basic tactics. -/
 
 theorem contrapositive (a b : Prop) :
     (a → b) → ¬ b → ¬ a :=
-  sorry
+  by
+    intro f hnb ha
+    exact hnb (f ha)
 
 /- 1.3. Prove the distributivity of `∀` over `∧` using basic tactics.
 
@@ -65,10 +77,21 @@ be necessary. -/
 
 theorem forall_and {α : Type} (p q : α → Prop) :
     (∀x, p x ∧ q x) ↔ (∀x, p x) ∧ (∀x, q x) :=
-  sorry
-
+  by
+    apply Iff.intro
+    { intro h
+      apply And.intro
+      { intro x
+        exact And.left (h x) }
+      { intro x
+        exact And.right (h x) } }
+    { intro h
+      intro x
+      exact And.intro ((And.left h) x) ((And.right h) x) }
 
 /- ## Question 2: Natural Numbers
+
+/- ---===%%% Skipping this stuff %%%===--- -/
 
 2.1. Prove the following recursive equations on the first argument of the
 `mul` operator defined in lecture 1. -/
