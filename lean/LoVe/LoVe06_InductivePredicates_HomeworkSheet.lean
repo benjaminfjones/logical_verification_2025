@@ -28,6 +28,10 @@ inductive Term : Type
 its argument is of the form `Term.lam …` and that returns `False` otherwise. -/
 
 -- enter your definition here
+def IsLam : Term -> Prop
+  | .var _ => False
+  | .lam _ _ => True
+  | .app _ _ => False
 
 /- 1.2 (2 points). Validate your answer to question 1.1 by proving the following
 theorems: -/
@@ -77,7 +81,8 @@ use the following symmetric rule instead of `(step)` or `(pets)`:
 
 Define a predicate `TCV3` that embodies this alternative definition. -/
 
--- enter your definition here
+-- TODO: enter your definition here
+inductive TCV3 {α : Type} (R : α → α → Prop) : α → α → Prop
 
 /- 2.3 (1 point). Prove that `(step)` also holds as a theorem about `TCV3`. -/
 
