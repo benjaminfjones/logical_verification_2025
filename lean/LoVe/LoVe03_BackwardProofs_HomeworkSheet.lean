@@ -26,27 +26,42 @@ Hint: Some strategies for carrying out such proofs are described at the end of
 Section 3.3 in the Hitchhiker's Guide. -/
 
 theorem B (a b c : Prop) :
-    (a → b) → (c → a) → c → b :=
-  sorry
+    (a → b) → (c → a) → c → b := by
+  intro f g hc
+  exact f (g hc)
 
 theorem S (a b c : Prop) :
-    (a → b → c) → (a → b) → a → c :=
-  sorry
+    (a → b → c) → (a → b) → a → c := by
+  intro f g ha
+  exact f ha (g ha)
 
 theorem more_nonsense (a b c d : Prop) :
-    ((a → b) → c → d) → c → b → d :=
-  sorry
+    ((a → b) → c → d) → c → b → d := by
+  intro f hc hb
+  exact f (fun _ => hb) hc
 
 theorem even_more_nonsense (a b c : Prop) :
-    (a → b) → (a → c) → a → b → c :=
-  sorry
+    (a → b) → (a → c) → a → b → c := by
+  intro _f g ha _hb
+  exact g ha
 
 /- 1.2 (1 point). Prove the following theorem using basic tactics. -/
 
 theorem weak_peirce (a b : Prop) :
-    ((((a → b) → a) → a) → b) → b :=
-  sorry
+    ((((a → b) → a) → a) → b) → b := by
+  intro f
+  suffices i : ((a → b) → a) → a by
+    exact f i
+  intro haba
+  suffices hab : a → b by
+    exact haba hab
+  intro ha
+  exact f (fun _ => ha)
 
+-- Proof automated version
+theorem weak_peirce' (a b : Prop) :
+    ((((a → b) → a) → a) → b) → b := by
+  grind
 
 /- ## Question 2 (5 points): Logical Connectives
 
@@ -61,9 +76,16 @@ Hints:
 * You will need to apply the elimination rule for `False` at a key point in the
   proof. -/
 
+#check False.elim
+
 theorem herman (a : Prop) :
-    ¬¬ (¬¬ a → a) :=
-  sorry
+    ¬¬ (¬¬ a → a) := by
+  intro h1
+  apply h1
+  intro hnna
+  apply Classical.by_contradiction  -- didn't say not to :)
+  intro hna
+  exact hnna hna
 
 /- 2.2 (2 points). Prove the missing link in our chain of classical axiom
 implications.

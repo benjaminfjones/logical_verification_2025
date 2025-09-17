@@ -28,7 +28,7 @@ Section 3.3 in the Hitchhiker's Guide. -/
 theorem I (a : Prop) :
     a → a :=
   by
-    intto h; exact h
+    intro h; exact h
 
 theorem K (a b : Prop) :
     a → b → b :=
