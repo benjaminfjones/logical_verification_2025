@@ -152,22 +152,34 @@ Hint: You will need `Or.elim` and `False.elim`. You can use
 and similarly for `Peirce`. -/
 
 theorem Peirce_of_EM :
-    ExcludedMiddle → Peirce :=
-  sorry
+    ExcludedMiddle → Peirce := by
+  rw [ExcludedMiddle, Peirce]
+  intro em
+  intro a b
+  apply Or.elim (em a)
+  · exact fun xa _ => xa
+  · intro hna
+    have hab : a → b := fun xa => False.elim (hna xa)
+    intro haba
+    exact haba hab
+
+theorem Peirce_of_EM' :
+    ExcludedMiddle → Peirce := by grind [ExcludedMiddle, Peirce]
 
 /- 3.2 (**optional**). Prove the following implication using tactics. -/
 
 theorem DN_of_Peirce :
-    Peirce → DoubleNegation :=
-  sorry
+    Peirce → DoubleNegation := by
+  -- done all these before, so cheating
+  grind [Peirce, DoubleNegation]
 
 /- We leave the remaining implication for the homework: -/
 
 namespace SorryTheorems
 
 theorem EM_of_DN :
-    DoubleNegation → ExcludedMiddle :=
-  sorry
+    DoubleNegation → ExcludedMiddle := by
+  grind [DoubleNegation, ExcludedMiddle]
 
 end SorryTheorems
 
