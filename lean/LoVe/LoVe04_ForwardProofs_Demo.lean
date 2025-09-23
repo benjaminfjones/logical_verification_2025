@@ -29,7 +29,7 @@ arguments. -/
 
 theorem add_comm (m n : ℕ) :
     add m n = add n m :=
-  sorry
+  sorry  -- we didn't prove anything about `add` in LoVe02
 
 theorem add_comm_zero_left (n : ℕ) :
     add 0 n = add n 0 :=
@@ -390,15 +390,20 @@ can also be done by pattern matching and recursion:
 * well-foundedness of the argument is often proved automatically. -/
 
 #check reverse
+#check append
+
+theorem reverse_cons {α : Type} (x: α) (xs: List α) : reverse (x :: xs) = reverse xs ++ [x] := rfl
 
 theorem reverse_append {α : Type} :
     ∀xs ys : List α,
       reverse (xs ++ ys) = reverse ys ++ reverse xs
   | [],      ys => by simp [reverse]
   | x :: xs, ys => by
-    sorry
-    -- TODO: fixme for 4.22.0
-    -- simp only [reverse, reverse_append xs]
+    -- in Lean 4.?, the simplifier closes this goal using reverse def and
+    -- on small lemma
+    simp [reverse]
+    rw [reverse_append xs ys]
+    rw [List.append_assoc]
 
 
 theorem reverse_append_tactical {α : Type} (xs ys : List α) :
@@ -407,16 +412,18 @@ theorem reverse_append_tactical {α : Type} (xs ys : List α) :
     induction xs with
     | nil           => simp [reverse]
     | cons x xs' ih =>
-      sorry
-      -- TODO: fixme for 4.22.0
-      -- simp [reverse, ih]
+      simp [reverse, ih]
 
 theorem reverse_reverse {α : Type} :
     ∀xs : List α, reverse (reverse xs) = xs
   | []      => by rfl
-  | x :: xs =>
-      sorry
-      -- TODO: fixme for 4.22.0
-      -- by simp [reverse, reverse_append, reverse_reverse xs]
+  | x :: xs => by
+      simp only [reverse]
+      -- simplifier doesn't play well with universally quantified theorems
+      -- now (after `simp` was drastically changed in Lean 4.?)
+      rw [@reverse_append_tactical _ _ _, reverse_reverse]
+      unfold reverse
+      unfold reverse
+      rw [List.nil_append, List.singleton_append]
 
 end LoVe
