@@ -187,7 +187,7 @@ def appendPretty {α : Type} : List α → List α → List α
 
 def reverse {α : Type} : List α → List α
   | []      => []
-  | x :: xs => append _ (reverse xs) [x]
+  | x :: xs => (reverse xs) ++ [x]
 
 def eval (env : String → ℤ) : AExp → ℤ
   | AExp.num i     => i
