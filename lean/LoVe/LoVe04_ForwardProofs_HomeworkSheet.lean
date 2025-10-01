@@ -38,15 +38,18 @@ Hint: There is an easy way. -/
 
 theorem about_Impl_term :
     ∀a b : Prop, ¬ a ∨ b → a → b :=
-  sorry
+  fun _ _ hor ha => Or.elim hor (fun hna => False.elim (hna ha)) id
 
 /- 1.2 (2 points). Prove the same theorem again, this time by providing a
 structured proof, with `fix`, `assume`, and `show`. -/
 
 theorem about_Impl_struct :
     ∀a b : Prop, ¬ a ∨ b → a → b :=
-  sorry
-
+  fix a b : Prop
+  assume hor : ¬ a ∨ b
+  assume ha : a
+  show b from
+    Or.elim hor (fun hna => False.elim (hna ha)) id
 
 /- ## Question 2 (6 points): Connectives and Quantifiers
 
@@ -56,7 +59,7 @@ rules for `∀`, `∨`, and `↔`. -/
 
 theorem Or_comm_under_All {α : Type} (p q : α → Prop) :
     (∀x, p x ∨ q x) ↔ (∀x, q x ∨ p x) :=
-  sorry
+  by grind
 
 /- 2.2 (3 points). We have proved or stated three of the six possible
 implications between `ExcludedMiddle`, `Peirce`, and `DoubleNegation` in the
