@@ -70,7 +70,7 @@ theorem Nat.succ_neq_self (n : ℕ) :
   by
     induction n with
     | zero       => simp
-    | succ n' ih => simp [ih]
+    | succ n' ih => simp
 
 
 /- ## Structural Recursion
@@ -114,7 +114,7 @@ theorem proof_of_False :
   have h0eq1 : 0 = 1 :=
     by simp at him
   show False from
-    by simp at h0eq1
+    by simp only [zero_ne_one] at h0eq1
 
 
 /- ## Pattern Matching Expressions
@@ -237,7 +237,8 @@ theorem head_head {α : Type} [Inhabited α] (xs : List α) :
     head [head xs] = head xs :=
   by rfl
 
-#eval head ([] : List ℕ)
+#eval head ([] : List ℕ)         -- 0
+#eval head ([] : List (List ℕ))  -- []
 
 #check List.head
 
@@ -345,7 +346,7 @@ def headOpt {α : Type} : List α → Option α
   | x :: _ => Option.some x
 
 def headPre {α : Type} : (xs : List α) → xs ≠ [] → α
-  | [],     hxs => by simp at *
+  | [],     hxs => by simp only [ne_eq, not_true_eq_false] at *
   | x :: _, hxs => x
 
 #eval headOpt [3, 1, 4]
@@ -360,7 +361,7 @@ def zip {α β : Type} : List α → List β → List (α × β)
 
 def length {α : Type} : List α → ℕ
   | []      => 0
-  | x :: xs => length xs + 1
+  | _ :: xs => length xs + 1
 
 #check List.length
 
@@ -385,7 +386,7 @@ theorem min_add_add_match (l m n : ℕ) :
 
 theorem min_add_add_if (l m n : ℕ) :
     min (m + l) (n + l) = min m n + l :=
-  if h : m ≤ n then
+  if h : m ≤ n then  -- naming the proposition is essential
     by simp [min, h]
   else
     by simp [min, h]
@@ -394,14 +395,15 @@ theorem length_zip {α β : Type} (xs : List α) (ys : List β) :
     length (zip xs ys) = min (length xs) (length ys) :=
   by
     induction xs generalizing ys with
-    | nil           => simp [min, length]
+    | nil           =>
+      simp only [zip, length, min, zero_le, ↓reduceIte]
     | cons x xs' ih =>
       cases ys with
       | nil        => rfl
       | cons y ys' => simp [zip, length, ih ys', min_add_add]
 
-theorem map_zip {α α' β β' : Type} (f : α → α')
-      (g : β → β') :
+-- applies the theorem recursively rather than use induction
+theorem map_zip {α α' β β' : Type} (f : α → α') (g : β → β') :
     ∀xs ys,
       map (fun ab : α × β ↦
           (f (Prod.fst ab), g (Prod.snd ab)))
@@ -462,8 +464,8 @@ theorem mirror_mirror_calc {α : Type} :
 
 theorem mirror_Eq_nil_Iff {α : Type} :
     ∀t : Tree α, mirror t = Tree.nil ↔ t = Tree.nil
-  | Tree.nil        => by simp [mirror]
-  | Tree.node _ _ _ => by simp [mirror]
+  | Tree.nil        => by simp only [mirror]
+  | Tree.node _ _ _ => by simp only [mirror, reduceCtorEq]
 
 
 /- ## Dependent Inductive Types (**optional**) -/
@@ -482,7 +484,7 @@ def listOfVec {α : Type} : ∀{n : ℕ}, Vec α n → List α
 def vecOfList {α : Type} :
     ∀xs : List α, Vec α (List.length xs)
   | []      => Vec.nil
-  | x :: xs => Vec.cons x (vecOfList xs)
+  | x :: xs => Vec.cons x (vecOfList xs)  -- n inferred automatically
 
 theorem length_listOfVec {α : Type} :
     ∀(n : ℕ) (v : Vec α n), List.length (listOfVec v) = n
