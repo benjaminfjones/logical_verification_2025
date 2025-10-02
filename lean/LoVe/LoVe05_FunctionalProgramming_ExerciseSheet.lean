@@ -32,14 +32,24 @@ hypothesis is not strong enough. Start by proving the following generalization
 (using the `induction` tactic or pattern matching): -/
 
 theorem reverseAccu_Eq_reverse_append {α : Type} :
-    ∀as xs : List α, reverseAccu as xs = reverse xs ++ as :=
-  sorry
+    ∀as xs : List α, reverseAccu as xs = reverse xs ++ as := by
+  intros as xs
+  induction xs generalizing as with
+  | nil => rfl  -- or `simp [reverseAccu, reverse]`
+  | cons x' xs' ih =>
+    unfold reverseAccu
+    unfold reverse
+    rw [ih (x' :: as)]
+    simp only [List.append_assoc, List.cons_append, List.nil_append]
 
 /- 1.2. Derive the desired equation. -/
 
 theorem reverseAccu_eq_reverse {α : Type} (xs : List α) :
     reverseAccu [] xs = reverse xs :=
-  sorry
+  have hr : reverseAccu [] xs = reverse xs ++ [] := reverseAccu_Eq_reverse_append [] xs
+  have : reverse xs ++ [] = reverse xs := List.append_nil (reverse xs)
+  show reverseAccu [] xs = reverse xs from
+    Eq.subst this hr
 
 /- 1.3. Prove the following property.
 
@@ -47,7 +57,8 @@ Hint: A one-line inductionless proof is possible. -/
 
 theorem reverseAccu_reverseAccu {α : Type} (xs : List α) :
     reverseAccu [] (reverseAccu [] xs) = xs :=
-  sorry
+  by
+    simp [reverseAccu_eq_reverse xs, reverseAccu_Eq_reverse_append, reverse_reverse]
 
 /- 1.4. Prove the following theorem by structural induction, as a "paper"
 proof. This is a good exercise to develop a deeper understanding of how
