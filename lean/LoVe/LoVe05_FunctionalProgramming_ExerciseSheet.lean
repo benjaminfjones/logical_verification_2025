@@ -101,28 +101,39 @@ def drop {α : Type} : ℕ → List α → List α
 To avoid unpleasant surprises in the proofs, we recommend that you follow the
 same recursion pattern as for `drop` above. -/
 
-def take {α : Type} : ℕ → List α → List α :=
-  sorry
+def take {α : Type} : ℕ → List α → List α
+  | 0, _ => []
+  | _ + 1, [] => []
+  | m + 1, x :: xs => x :: take m xs
 
-#eval take 0 [3, 7, 11]   -- expected: []
-#eval take 1 [3, 7, 11]   -- expected: [3]
-#eval take 2 [3, 7, 11]   -- expected: [3, 7]
-#eval take 3 [3, 7, 11]   -- expected: [3, 7, 11]
-#eval take 4 [3, 7, 11]   -- expected: [3, 7, 11]
-
-#eval take 2 ["a", "b", "c"]   -- expected: ["a", "b"]
+#guard take 0 [3, 7, 11] == []
+#guard take 1 [3, 7, 11] == [3]
+#guard take 2 [3, 7, 11] == [3, 7]
+#guard take 3 [3, 7, 11] == [3, 7, 11]
+#guard take 4 [3, 7, 11] == [3, 7, 11]
+#guard take 2 ["a", "b", "c"] == ["a", "b"]
 
 /- 2.2. Prove the following theorems, using `induction` or pattern matching.
 Notice that they are registered as simplification rules thanks to the `@[simp]`
 attribute. -/
 
 @[simp] theorem drop_nil {α : Type} :
-    ∀n : ℕ, drop n ([] : List α) = [] :=
-  sorry
+    ∀n : ℕ, drop n ([] : List α) = [] := by
+  intro n
+  match n with
+  | .zero => rfl
+  | .succ m =>
+    unfold drop
+    rfl
 
 @[simp] theorem take_nil {α : Type} :
-    ∀n : ℕ, take n ([] : List α) = [] :=
-  sorry
+    ∀n : ℕ, take n ([] : List α) = [] := by
+  intro n
+  cases n with
+  | zero => rfl
+  | succ m =>
+    unfold take
+    rfl
 
 /- 2.3. Follow the recursion pattern of `drop` and `take` to prove the
 following theorems. In other words, for each theorem, there should be three
@@ -134,15 +145,38 @@ two arguments to `drop`). For the third case, `← add_assoc` might be useful. -
 theorem drop_drop {α : Type} :
     ∀(m n : ℕ) (xs : List α), drop n (drop m xs) = drop (n + m) xs
   | 0,     n, xs      => by rfl
-  -- supply the two missing cases here
+  | _ + 1, n, []      => by simp
+  | m + 1, n, x :: xs => by
+    conv =>  -- conv rules!
+      lhs
+      arg 2
+      unfold drop
+    rw [drop_drop m n]
+    conv =>
+      rhs
+      unfold drop
+    simp
 
 theorem take_take {α : Type} :
-    ∀(m : ℕ) (xs : List α), take m (take m xs) = take m xs :=
-  sorry
+    ∀(m : ℕ) (xs : List α), take m (take m xs) = take m xs
+  | 0, xs          => by rfl
+  | _ + 1, []      => by
+    repeat (rw [take_nil])  -- or `simp`
+  | m + 1, x :: xs => by
+    conv =>  -- conv rules!
+      lhs
+      arg 2
+      unfold take
+    unfold take
+    rw [take_take m]
 
 theorem take_drop {α : Type} :
-    ∀(n : ℕ) (xs : List α), take n xs ++ drop n xs = xs :=
-  sorry
+    ∀(n : ℕ) (xs : List α), take n xs ++ drop n xs = xs
+  | 0, xs          => by rfl
+  | _ + 1, []      => by simp only [take_nil, drop_nil, List.append_nil]
+  | m + 1, x :: xs => by
+    unfold take drop
+    rw [List.cons_append, take_drop m xs]
 
 
 /- ## Question 3: A Type of Terms
@@ -154,22 +188,35 @@ theorem take_drop {α : Type} :
             |  `lam` String Term   -- λ-expression (e.g., `λx. t`)
             |  `app` Term Term     -- application (e.g., `t u`) -/
 
--- enter your definition here
+inductive Term : Type where
+  | var : String -> Term
+  | lam : String -> Term -> Term
+  | app : Term -> Term -> Term
 
 /- 3.2 (**optional**). Register a textual representation of the type `Term` as
 an instance of the `Repr` type class. Make sure to supply enough parentheses to
 guarantee that the output is unambiguous. -/
 
-def Term.repr : Term → String
--- enter your answer here
+def Term.repr (t: Term) : String :=
+  match t with
+  | .var name => s!"{name}"
+  | .lam v t => s!"(λ{v}. ({t.repr}))"
+  | .app f b => s!"({f.repr} {b.repr})"
 
 instance Term.Repr : Repr Term :=
-  { reprPrec := fun t prec ↦ Term.repr t }
+  { reprPrec := fun t _prec ↦ Term.repr t }
+
+instance Term.ToString : ToString Term :=
+  { toString := fun t => Term.repr t }
 
 /- 3.3 (**optional**). Test your textual representation. The following command
 should print something like `(λx. ((y x) x))`. -/
 
-#eval (Term.lam "x" (Term.app (Term.app (Term.var "y") (Term.var "x"))
-    (Term.var "x")))
+def myTerm := (Term.lam "x"
+                   (Term.app (Term.app
+                                (Term.var "y")
+                                (Term.var "x"))
+                              (Term.var "x")))
+#eval s!"{myTerm}"  -- "(λx. (((y x) x)))"
 
 end LoVe
