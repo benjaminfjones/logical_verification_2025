@@ -31,8 +31,10 @@ numeric weight, a left subtree, and a right subtree.
 tree over some type variable `α` and that returns the weight component of the
 root node of the tree: -/
 
-def weight {α : Type} : HTree α → ℕ :=
-  sorry
+def weight {α : Type} : HTree α → ℕ
+  | .leaf n _ => n
+  | .inner n _ _ => n
+
 
 /- 1.2 (1 point). Define a polymorphic Lean function called `unite` that takes
 two trees `l, r : HTree α` and that returns a new tree such that (1) its left
@@ -40,7 +42,7 @@ child is `l`; (2) its right child is `r`; and (3) its weight is the sum of the
 weights of `l` and `r`. -/
 
 def unite {α : Type} : HTree α → HTree α → HTree α :=
-  sorry
+  fun l r => HTree.inner (weight l + weight r) l r
 
 /- 1.3 (2 points). Consider the following `insort` function, which inserts a
 tree `u` in a list of trees that is sorted by increasing weight and which
@@ -55,7 +57,21 @@ def insort {α : Type} (u : HTree α) : List (HTree α) → List (HTree α)
 
 theorem insort_Neq_nil {α : Type} (t : HTree α) :
     ∀ts : List (HTree α), insort t ts ≠ [] :=
-  sorry
+  by
+    intro ts
+    cases ts with
+    | nil => simp [insort]
+    | cons t' ts' =>
+      unfold insort
+      if h : (weight t ≤ weight t') = True then
+        rw [ite_cond_eq_true]
+        simp
+        assumption
+      else
+        -- TODO: lifting in and out of ite's stumps me
+        cases ite_eq_or_eq (weight t ≤ weight t') (t :: t' :: ts') (t' :: insort t ts')
+        . rw [h_1]; simp
+        . rw [h_1]; simp
 
 /- 1.4 (2 points). Prove the same property as above again, this time as a
 "paper" proof. Follow the guidelines given in question 1.4 of the exercise. -/
@@ -87,14 +103,28 @@ Hints:
 
 theorem sumUpToOfFun_eq :
     ∀m : ℕ, 2 * sumUpToOfFun (fun i ↦ i) m = m * (m + 1) :=
-  sorry
+  by
+    intro m
+    induction m with
+    | zero => rfl
+    | succ m ih =>
+      unfold sumUpToOfFun
+      rw [mul_add, ih]
+      linarith
 
 /- 2.2 (2 points). Prove the following property of `sumUpToOfFun`. -/
 
 theorem sumUpToOfFun_mul (f g : ℕ → ℕ) :
     ∀n : ℕ, sumUpToOfFun (fun i ↦ f i + g i) n =
       sumUpToOfFun f n + sumUpToOfFun g n :=
-  sorry
+  by
+    intro m
+    induction m with
+    | zero => rfl
+    | succ m ih =>
+      unfold sumUpToOfFun
+      rw [ih]
+      linarith
 
 /- 2.3 (2 bonus points). Prove `sumUpToOfFun_mul` again as a "paper" proof.
 Follow the guidelines given in question 1.4 of the exercise. -/
