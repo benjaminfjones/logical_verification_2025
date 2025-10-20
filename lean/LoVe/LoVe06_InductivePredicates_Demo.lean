@@ -36,6 +36,7 @@ example:
 
 In Lean, we can define the corresponding "is even" predicate as follows: -/
 
+/- This is a type depending on a Nat; the values are proof terms. -/
 inductive Even : ℕ → Prop where
   | zero    : Even 0
   | add_two : ∀k : ℕ, Even k → Even (k + 2)
@@ -103,14 +104,14 @@ inductive Score : Type where
 infixr:50 " – " => Score.vs
 
 inductive Step : Score → Score → Prop where
-  | serv_0_15     : ∀n, Step (0–n) (15–n)
+  | serv_0_15     : ∀n, Step (0–n) (15–n)  -- point for serv at 0-n
   | serv_15_30    : ∀n, Step (15–n) (30–n)
   | serv_30_40    : ∀n, Step (30–n) (40–n)
   | serv_40_game  : ∀n, n < 40 → Step (40–n) Score.gameServ
   | serv_40_adv   : Step (40–40) Score.advServ
   | serv_adv_40   : Step Score.advServ (40–40)
   | serv_adv_game : Step Score.advServ Score.gameServ
-  | recv_0_15     : ∀n, Step (n–0) (n–15)
+  | recv_0_15     : ∀n, Step (n–0) (n–15)  -- point for recv at n-0
   | recv_15_30    : ∀n, Step (n–15) (n–30)
   | recv_30_40    : ∀n, Step (n–30) (n–40)
   | recv_40_game  : ∀n, n < 40 → Step (n–40) Score.gameRecv
@@ -139,6 +140,7 @@ theorem no_Step_to_0_0 (s : Score) :
 Our last introductory example is the reflexive transitive closure of a
 relation `R`, modeled as a binary predicate `Star R`. -/
 
+-- a type and a binary relation goes to the transitive closure
 inductive Star {α : Type} (R : α → α → Prop) : α → α → Prop
 where
   | base (a b : α)    : R a b → Star R a b
@@ -151,9 +153,7 @@ reflexive closure. The third rule achieves the transitive closure.
 The definition is truly elegant. If you doubt this, try implementing `Star` as a
 recursive function: -/
 
-def starRec {α : Type} (R : α → α → Bool) :
-  α → α → Bool :=
-  sorry
+def starRec {α : Type} (R : α → α → Bool) : α → α → Bool := sorry
 
 
 /- ### A Nonexample
@@ -165,7 +165,6 @@ Not all inductive definitions are legal. -/
 inductive Illegal : Prop where
   | intro : ¬ Illegal → Illegal
 -/
-
 
 /- ## Logical Symbols
 
@@ -238,9 +237,9 @@ theorem Not_Even_two_mul_add_one (m n : ℕ)
     | add_two k hk ih =>
       apply ih (n - 1)
       cases n with
-      | zero    => simp [Nat.ctor_eq_zero] at *
+      | zero    => linarith
       | succ n' =>
-        simp [Nat.succ_eq_add_one] at *
+        simp only [add_tsub_cancel_right]
         linarith
 
 /- `linarith` proves goals involving linear arithmetic equalities or
@@ -255,7 +254,7 @@ theorem Star_Star_Iff_Star {α : Type} (R : α → α → Prop)
       (a b : α) :
     Star (Star R) a b ↔ Star R a b :=
   by
-    apply Iff.intro
+    constructor
     { intro h
       induction h with
       | base a b hab                  => exact hab
@@ -279,7 +278,9 @@ theorem Star_Star_Iff_Star {α : Type} (R : α → α → Prop)
     apply propext
     apply Star_Star_Iff_Star
 
+/- essentially ∀ (x : α) f x = g x → f = g -/
 #check funext
+/- (a ↔ b) → a = b -/
 #check propext
 
 
@@ -307,7 +308,11 @@ theorem cases_Eq_example {α : Type} (l r : α) (h : l = r)
     P l r :=
   by
     cases h
-    sorry
+    sorry  -- ⊢ P l l
+    -- without knowing more about P this is unprovable
+    -- rw [h]    -- ⊢ P r r
+    -- rw [← h]  -- ⊢ P l l
+
 
 #check Classical.em
 #print Or
@@ -348,7 +353,9 @@ theorem Even_Iff (n : ℕ) :
         simp [hk] }
     { intro hor
       cases hor with
-      | inl heq => simp [heq, Even.zero]
+      | inl heq =>
+        rw [heq] -- simp [heq, Even.zero]
+        apply Even.zero
       | inr hex =>
         cases hex with
         | intro k hand =>
@@ -404,7 +411,7 @@ theorem Sorted_3_5 :
     Sorted [3, 5] :=
   by
     apply Sorted.two_or_more
-    { simp }
+    { norm_num }
     { exact Sorted.single _ }
 
 theorem Sorted_3_5_raw :
@@ -459,7 +466,7 @@ theorem Palindrome_reverse {α : Type} (xs : List α)
     | nil                  => exact Palindrome.nil
     | single x             => exact Palindrome.single x
     | sandwich x xs hxs ih =>
-      { simp [reverse, reverse_append]
+      { simp [reverse, reverse_append]  -- push reverse into to the `xs`
         exact Palindrome.sandwich _ _ ih }
 
 
