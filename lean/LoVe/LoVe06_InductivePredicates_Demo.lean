@@ -476,6 +476,7 @@ theorem Palindrome_reverse {α : Type} (xs : List α)
 
 inductive IsFull {α : Type} : Tree α → Prop where
   | nil : IsFull Tree.nil
+  -- inner node: leaves are full + either both non-nil or both nil
   | node (a : α) (l r : Tree α)
       (hl : IsFull l) (hr : IsFull r)
       (hiff : l = Tree.nil ↔ r = Tree.nil) :
@@ -500,7 +501,7 @@ theorem IsFull_mirror {α : Type} (t : Tree α)
         apply IsFull.node
         { exact ih_r }
         { exact ih_l }
-        { simp [mirror_Eq_nil_Iff, *] } }
+        { simp only [mirror_Eq_nil_Iff, hiff] /- simp [mirror_Eq_nil_Iff, *] -/ } }
 
 theorem IsFull_mirror_struct_induct {α : Type} (t : Tree α) :
     IsFull t → IsFull (mirror t) :=
@@ -517,7 +518,7 @@ theorem IsFull_mirror_struct_induct {α : Type} (t : Tree α) :
             apply IsFull.node
             { exact ih_r hr }
             { apply ih_l hl }
-            { simp [mirror_Eq_nil_Iff, *] } } }
+            { simp [mirror_Eq_nil_Iff, hiff] } } }
 
 
 /- ### First-Order Terms -/
