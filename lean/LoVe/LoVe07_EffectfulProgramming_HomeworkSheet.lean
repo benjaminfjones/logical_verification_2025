@@ -29,23 +29,74 @@ types. Inventory all the arguments and operations available (e.g., `pure`,
 bricks. -/
 
 def map {m : Type → Type} [LawfulMonad m] {α β : Type} (f : α → β) (ma : m α) :
-    m β :=
-  sorry
+    m β := ma >>= (fun a => pure (f a))
+  -- do
+  --   let x ← ma
+  --   pure (f x)
 
 /- 1.2 (1 point). Prove the identity law for `map`.
 
 Hint: You will need `LawfulMonad.bind_pure`. -/
 
-theorem map_id {m : Type → Type} [LawfulMonad m] {α : Type} (ma : m α) :
-    map id ma = ma :=
-  sorry
+theorem map_id {m : Type → Type} [i: LawfulMonad m] {α : Type} (ma : m α) :
+    map id ma = ma := by
+  unfold id
+  show ma >>= (fun a => pure a) = ma
+  -- now it's obviously `bind_pure`
+  apply i.bind_pure
 
 /- 1.3 (2 points). Prove the composition law for `map`. -/
 
-theorem map_map {m : Type → Type} [LawfulMonad m] {α β γ : Type}
+/-
+
+(do
+    let a ←
+      do
+        let a ← ma
+        pure (f a)
+    pure (g a)) =
+  do
+  let a ← ma
+  pure (g (f a))
+
+  ----
+
+  do
+    let a ← ma
+    let a' ← pure (f a)
+    pure (g a')
+
+  =
+
+  do
+    let a ← ma
+    pure (g (f a))
+
+-/
+theorem map_map {m : Type → Type} [i: LawfulMonad m] {α β γ : Type}
       (f : α → β) (g : β → γ) (ma : m α) :
-    map g (map f ma) = map (fun x ↦ g (f x)) ma :=
-  sorry
+    map g (map f ma) = map (fun x ↦ g (f x)) ma := by
+  -- simp [map]
+  show (ma >>= (fun a => pure (f a)) >>= (fun a => pure (g a))) =
+    ma >>= (fun a => pure (g (f a)))
+  rw [i.bind_assoc]
+  /-
+  ⊢ do
+      let a ← ma
+      let a ← pure (f a)
+      pure (g a)
+  =
+    do
+      let a ← ma
+      pure (g (f a))
+  -/
+  -- stuck here originally.. could not reduce the goal
+  -- but `apply?` suggests `bind_congr` which makes progress by
+  -- splitting the LHS of the goal into a bind and the remaining hole
+  -- is to prove that the overall binds are equal.
+  refine bind_congr ?_
+  intro
+  apply i.pure_bind
 
 
 /- ## Question 2 (5 points + 1 bonus point): Monadic Structure on Lists
