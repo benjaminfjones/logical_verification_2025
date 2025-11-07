@@ -105,11 +105,15 @@ theorem map_map {m : Type → Type} [i: LawfulMonad m] {α β γ : Type}
 outcomes. It is also similar to `Set`, but the results are ordered and finite.
 The code below sets `List` up as a monad. -/
 
+#check List.append
+
 namespace List
 
 def bind {α β : Type} : List α → (α → List β) → List β
-  | [],      f => []
+  | [],      _f => []
   | a :: as, f => f a ++ bind as f
+
+#eval bind [1, 2, 3] (fun x => [x*x, x*x*x])
 
 def pure {α : Type} (a : α) : List α :=
   [a]
@@ -118,8 +122,22 @@ def pure {α : Type} (a : α) : List α :=
 operation. -/
 
 theorem bind_append {α β : Type} (f : α → List β) :
-    ∀as as' : List α, bind (as ++ as') f = bind as f ++ bind as' f :=
-  sorry
+    ∀as as' : List α, bind (as ++ as') f = bind as f ++ bind as' f := by
+  intros
+  match as with
+    | [] =>
+      rw [List.nil_append]
+      simp [bind]
+      -- or, instead of `simp`
+      -- conv =>
+      --   rhs
+      --   lhs
+      --   unfold bind
+      -- rw [List.nil_append]
+    | hd :: tl =>
+      rw [List.cons_append]
+      simp [bind]
+      rw [bind_append f _ _]
 
 /- 2.2 (3 points). Prove the three laws for `List`. -/
 
