@@ -142,27 +142,67 @@ theorem bind_append {α β : Type} (f : α → List β) :
 /- 2.2 (3 points). Prove the three laws for `List`. -/
 
 theorem pure_bind {α β : Type} (a : α) (f : α → List β) :
-    bind (pure a) f = f a :=
-  sorry
+    bind (pure a) f = f a := by
+  simp [List.bind, List.pure]
 
 theorem bind_pure {α : Type} :
-    ∀as : List α, bind as pure = as :=
-  sorry
+    ∀as : List α, bind as pure = as := by
+  intros
+  match as with
+    | [] => simp [List.bind]
+    | hd :: tl =>
+      simp [List.bind, List.pure]
+      apply bind_pure tl
 
 theorem bind_assoc {α β γ : Type} (f : α → List β) (g : β → List γ) :
-    ∀as : List α, bind (bind as f) g = bind as (fun a ↦ bind (f a) g) :=
-  sorry
+    ∀as : List α, bind (bind as f) g = bind as (fun a ↦ bind (f a) g) := by
+  intros
+  match as with
+    | [] => simp [List.bind]
+    | hd :: tl =>
+      simp [List.bind]
+      rw [bind_append]
+      -- append is left and right injective
+      -- apply?
+      refine (List.append_right_inj (bind (f hd) g)).mpr ?_
+      -- ⊢ bind (bind tl f) g =
+      --   bind tl (fun a => bind (f a) g)
+      apply bind_assoc  -- recursive application for `tl`
+
+
 
 /- 2.3 (1 point). Prove the following list-specific law. -/
 
 theorem bind_pure_comp_eq_map {α β : Type} {f : α → β} :
-    ∀as : List α, bind as (fun a ↦ pure (f a)) = List.map f as :=
-  sorry
+    ∀as : List α, bind as (fun a ↦ pure (f a)) = List.map f as := by
+  intros
+  match as with
+    | [] => simp [List.bind]
+    | hd :: tl =>
+      simp [List.bind, List.pure]
+      apply bind_pure_comp_eq_map
 
 /- 2.4 (1 bonus point). Register `List` as a lawful monad: -/
 
+/-
+class LawfulMonad (m : Type → Type)
+  extends Pure m, Bind m where
+  pure_bind {α β : Type} (a : α) (f : α → m β) :
+    (pure a >>= f) = f a
+  bind_pure {α : Type} (ma : m α) :
+    (ma >>= pure) = ma
+  bind_assoc {α β γ : Type} (f : α → m β) (g : β → m γ)
+      (ma : m α) :
+    ((ma >>= f) >>= g) = (ma >>= (fun a ↦ f a >>= g))
+-/
 instance LawfulMonad : LawfulMonad List :=
-  sorry
+  {
+    pure := List.pure,
+    bind := List.bind,
+    pure_bind := List.pure_bind,
+    bind_pure := List.bind_pure,
+    bind_assoc := List.bind_assoc,
+  }
 
 end List
 
