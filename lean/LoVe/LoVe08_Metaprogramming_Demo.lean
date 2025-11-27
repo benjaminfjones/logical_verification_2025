@@ -69,7 +69,8 @@ theorem repeat'_example :
   by
     repeat' apply And.intro
     repeat' apply Even.add_two
-    repeat' sorry
+    repeat' apply Even.zero
+    repeat' sorry  -- two copies of `Even 1` left
 
 /- The "first" combinator `first | ⋯ | ⋯ | ⋯` tries its first argument. If that
 fails, it applies its second argument. If that fails, it applies its third
@@ -162,6 +163,8 @@ macro "intro_and_even" : tactic =>
 theorem intro_and_even_example :
     Even 4 ∧ Even 7 ∧ Even 3 ∧ Even 0 :=
   by
+    -- on Even 3 and Even 7 the `repeat'` doesn't eventually succeed in solving the
+    -- goal, so `solve` doesn't succeed on those
     intro_and_even
     repeat' sorry
 
@@ -184,6 +187,8 @@ goal management.
 
 * Like other monads, `MetaM` and `TacticM` support imperative constructs such as
   `for`–`in`, `continue`, and `return`. -/
+
+#eval s!"Lean version {Lean.versionString}"
 
 def traceGoals : TacticM Unit :=
   do
@@ -490,6 +495,8 @@ theorem Nat.symm_manual (x y : ℕ) (h : x = y) :
     apply symm
     hypothesis
 
+-- The following two applications of `prove_direct` cause stack overflow
+/-
 theorem Nat.trans (x y z : ℕ) (hxy : x = y) (hyz : y = z) :
     x = z :=
   by prove_direct
@@ -497,6 +504,7 @@ theorem Nat.trans (x y z : ℕ) (hxy : x = y) (hyz : y = z) :
 theorem List.reverse_twice (xs : List ℕ) :
     List.reverse (List.reverse xs) = xs :=
   by prove_direct
+-/
 
 /- Lean has `apply?`: -/
 
